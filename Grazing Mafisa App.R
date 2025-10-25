@@ -1,70 +1,3 @@
-#################################################
-#################################################
-### SETUP NEEDED IF ELIGIBILITY OR BLOCK BOUNDARIES ARE CHANGED
-#################################################
-
-# ### Perform ineligibility cutouts from grazing block shapefiles
-# library(sf)
-# 
-# #elig = st_read(file.path(getwd(), "Input data", "Eligibility", "VCS4915_10m_Eligibility_boundaries.gpkg"))
-# blocks1 = st_read(file.path(getwd(), "Input data", "Grazing spatial data", "20251014_Cohort_0_1_Overlap_Correction", "20251014Cohort01OverlapCorrection.shp"))
-# blocks2 = st_read(file.path(getwd(), "Input data", "Grazing spatial data", "20251014_Cohort_2_Overlap_Correction", "20251014Cohort2OverlapCorrection.shp"))
-#   
-# # Step 1: Make both layers valid
-# #elig_valid <- st_make_valid(elig)
-# blocks1_valid <- st_make_valid(blocks1)
-# blocks2_valid <- st_make_valid(blocks2)
-# 
-# # Step 2: Union the eligibility polygons to get a single eligible area with holes
-# #elig_union <- st_union(elig_valid)
-# #saveRDS(elig_union, file=file.path(getwd(), "Input data", "Eligibility", "VCS4915_10m_eligibility_single_polygon.RDS"))
-# elig_union = readRDS(file=file.path(getwd(), "Input data", "Eligibility", "VCS4915_10m_eligibility_single_polygon.RDS"))
-# 
-# # Step 3: Intersect grazing blocks with eligible land
-# blocks1_elig <- st_intersection(blocks1_valid, elig_union)
-# blocks2_elig <- st_intersection(blocks2_valid, elig_union)
-# 
-# st_write(blocks1_elig, file.path(getwd(), "Input data", "Grazing spatial data", "20251014Cohort01OverlapCorrection_eligible.gpkg"), delete_dsn = TRUE)
-# st_write(blocks2_elig, file.path(getwd(), "Input data", "Grazing spatial data", "20251014Cohort2OverlapCorrection_eligible.gpkg"), delete_dsn = TRUE)
-
-# ### Extract and assign other model input values to the UNZA 
-# library(tidyverse)
-# library(sf)
-# library(geodata)          # Used to get WorldClim variables for each point
-# library(raster)
-# 
-# project_boundary = st_read(file.path(getwd(), "Input data", "Eligibility", "VCS4915_Outer Boundary.shp"))
-# UNZA_points = read.csv(file.path(getwd(), "Input data", "UNZA 2025 Data", "Sheet 1-SOIL DATA CARBON+BD+TEXTURE-650 RECORDS_headers_corrected.csv"))
-# UNZA_sf = UNZA_points %>%
-#   st_as_sf(coords=c("Lon", "Lat"), crs=4326) %>%
-#   mutate(Lon = sf::st_coordinates(.)[,1],
-#          Lat = sf::st_coordinates(.)[,2])
-# 
-# ## Load and extract values of specific variables and attribute to pre-sampling points
-# # Temperature and precipitation
-# monthly_MAT <- worldclim_country("Zambia", var="tavg", path=file.path(getwd(), "MapLayers"))
-# annual_MAT <- calc(stack(monthly_MAT), fun = mean, na.rm = TRUE)
-# cropped_MAT_raster <- crop(annual_MAT, as(project_boundary, "Spatial"))
-# 
-# monthly_MAP <- worldclim_country("Zambia", var="prec", path=file.path(getwd(), "MapLayers"))
-# annual_MAP <- calc(stack(monthly_MAP), fun = sum, na.rm = TRUE)
-# cropped_MAP_raster <- crop(annual_MAP, as(project_boundary, "Spatial"))
-# 
-# UNZA_sf$MAT <- raster::extract(cropped_MAT_raster, UNZA_sf)
-# UNZA_sf$MAP <- raster::extract(cropped_MAP_raster, UNZA_sf)
-# 
-# # Extract fire frequency data from MODIS baseline period (2014-2023)
-# MODIS_burn_frequency_baseline = raster(file.path(getwd(), "Input data", "Fire frequency", "MODIS_fire_freq_counts_2014-2023.tif"))
-# UNZA_sf$Fire_frequency <- raster::extract(MODIS_burn_frequency_baseline, UNZA_sf)
-# UNZA_sf$Fire_frequency[is.na(UNZA_sf$Fire_frequency)] = 0
-# write.csv(st_drop_geometry(UNZA_sf), file=file.path(getwd(), "Input data", "UNZA 2025 Data", "UNZA 2025 Phase 1 data.csv"), row.names = F)
-
-################
-################
-
-# Minimalist Shiny app for Zambia grazing communities (2024/2025)
-# Uses existing several core objects:
-# communities1, communities2, blocks1, blocks1_elig, blocks2, blocks2_elig, reports24, reports25
 
 library(shiny)
 library(leaflet)
@@ -83,24 +16,30 @@ library(scales)
 
 sf_use_s2(FALSE)
 
-communities1 = st_read(file.path(getwd(), "Input data", "Grazing spatial data", "Cohort01_CommunityBoundaries.gpkg"))
-communities2 = st_read(file.path(getwd(), "Input data", "Grazing spatial data", "Cohort2_CommunityBoundaries.gpkg"))
+#path
 
-reports24 = read.csv(file.path(getwd(), "Input data", "Grazing spatial data", "Master Grazing Reports 2024-April 2025_corrected.csv"))
-reports25 = read.csv(file.path(getwd(), "Input data", "Grazing spatial data", "Grazing Coordinates and Data_2025_10_14.csv"))
 
-blocks1 = st_read(file.path(getwd(), "Input data", "Grazing spatial data", "20251014_Cohort_0_1_Overlap_Correction", "20251014Cohort01OverlapCorrection.shp"))
-blocks2 = st_read(file.path(getwd(), "Input data", "Grazing spatial data", "20251014_Cohort_2_Overlap_Correction", "20251014Cohort2OverlapCorrection.shp"))
+communities1 <- st_read("Data/Cohort01_CommunityBoundaries.gpkg")
+communities2 <- st_read("Data/Cohort2_CommunityBoundaries.gpkg")
 
-blocks1_elig = st_read(file.path(getwd(), "Input data", "Grazing spatial data", "20251014Cohort01OverlapCorrection_eligible.gpkg"))
-blocks2_elig = st_read(file.path(getwd(), "Input data", "Grazing spatial data", "20251014Cohort2OverlapCorrection_eligible.gpkg"))
+blocks1 <- st_read("Data/20251014Cohort01OverlapCorrection.shp")
+blocks2 <- st_read("Data/20251014Cohort2OverlapCorrection.shp")
 
-project_boundary = st_read(file.path(getwd(), "Input data", "Eligibility", "VCS4915_Outer Boundary.shp"))
-UNZA_points = read.csv(file.path(getwd(), "Input data", "UNZA 2025 Data", "UNZA 2025 Phase 1 data.csv"))
-presample_points = read.csv(file.path(getwd(), "outputs", "Pre-sampling data_processed.csv"))
+blocks1_elig <- st_read("Data/20251014Cohort01OverlapCorrection_eligible.gpkg")
+blocks2_elig <- st_read("Data/20251014Cohort2OverlapCorrection_eligible.gpkg")
 
-boreholes = read.csv(file.path(getwd(), "Input data", "Borehole data 2024_and2025.csv"))
-PAI_boundaries = st_read(file.path(getwd(), "Input data", "Grazing spatial data", "PAI_ClusterBoundaries.gpkg"))
+PAI_boundaries <- st_read("Data/PAI_ClusterBoundaries.gpkg")
+
+project_boundary <- st_read("Data/VCS4915_Outer Boundary.shp")
+
+
+reports24 <- read.csv("Data/Master Grazing Reports 2024-April 2025_corrected.csv")
+reports25 <- read.csv("Data/Grazing Coordinates and Data_2025_10_14.csv")
+
+boreholes <- read.csv("Data/Borehole data 2024_and2025.csv")
+UNZA_points <- read.csv("Data/UNZA 2025 Phase 1 data.csv")
+
+presample_points <- read.csv("Data/Pre-sampling data_processed.csv")
 
 # Base map group names
 BASE_LIGHT <- "Light (Carto)"
