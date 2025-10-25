@@ -1,4 +1,3 @@
-
 library(shiny)
 library(leaflet)
 library(leaflet.extras)
@@ -49,9 +48,7 @@ presample_points <- read.csv("App/Pre-sampling data_processed.csv")
 BASE_LIGHT <- "Light (Carto)"
 BASE_SAT <- "Satellite (Esri)"
 
-# ----------------------------
-# 1) Helpers
-# ----------------------------
+
 
 # Normalize community strings for safe text join (case-insensitive, ignore punctuation/space/underscore)
 norm_comm <- function(x) {
@@ -183,9 +180,7 @@ bbox_of <- function(x) {
   sf::st_bbox(sf::st_union(sf::st_transform(x, 4326)))
 }
 
-# ----------------------------
-# 2) Standardize & Prepare data
-# ----------------------------
+
 
 # --- Communities (one polygon per community) ---
 comm24 <- communities1 %>%
@@ -580,9 +575,7 @@ filter_reports_by_comm <- function(reps, selected) {
 }
 
 
-# ----------------------------
-# 3) Shiny UI
-# ----------------------------
+####Shinny UI
 
 ui <- fluidPage(
   titlePanel("Mafisa carbon project - Community grazing summary explorer"),
@@ -619,9 +612,8 @@ ui <- fluidPage(
   )
 )
 
-# ----------------------------
-# 4) Shiny Server
-# ----------------------------
+
+# Shinny Server
 
 server <- function(input, output, session) {
   
