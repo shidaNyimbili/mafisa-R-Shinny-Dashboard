@@ -14,6 +14,10 @@ library(glue)
 library(tibble)
 library(scales)
 
+
+# install.packages("shiny")
+# install.packages(c("leaflet", "leaflet.extras", "sf", "dplyr", "stringr", "lubridate", "tidyr", "DT", "RColorBrewer", "purrr", "glue", "tibble", "scales"))
+
 sf_use_s2(FALSE)
 
 #path
